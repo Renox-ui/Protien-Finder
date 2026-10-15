@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Protein Finder</title>
+<style>
+:root{--bg:#eef3f1;--surface:#fff;--ink:#14211c;--mute:#5f6f68;--line:#d3ddd8;--accent:#0f8a5f;--accent-ink:#fff;--track:#d3ddd8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1613;--surface:#16211c;--ink:#e6f0eb;--mute:#8fa39a;--line:#26362f;--accent:#3ecf93;--accent-ink:#06190f;--track:#26362f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1613;--surface:#16211c;--ink:#e6f0eb;--mute:#8fa39a;--line:#26362f;--accent:#3ecf93;--accent-ink:#06190f;--track:#26362f;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Trebuchet MS","Segoe UI",system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:18px 16px 60px}
+h1{font:800 28px/1.1 "Rockwell","Georgia",serif;margin:6px 0 14px}
+.today{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:16px}
+.big{font:800 40px/1 "Rockwell","Georgia",serif}
+.big small{font:600 16px "Trebuchet MS",sans-serif;color:var(--mute)}
+.bar{height:10px;background:var(--track);border-radius:99px;margin:12px 0 8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.goal{display:flex;align-items:center;gap:8px;color:var(--mute);font-size:14px}
+.goal input{width:80px;padding:6px 8px}
+input{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+ul{list-style:none;margin:0;padding:0}
+.foods{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.food{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit;color:var(--ink);cursor:pointer}
+.food b{display:block}.food small{color:var(--mute)}
+.p{font-weight:800;color:var(--accent);white-space:nowrap}
+.sheet{background:var(--surface);border:2px solid var(--accent);border-radius:16px;padding:16px;margin-top:10px}
+.sheet h2{margin:0 0 4px;font-size:20px}
+.res{font:800 34px/1.1 "Rockwell","Georgia",serif;color:var(--accent);margin:10px 0}
+.row{display:flex;gap:8px;align-items:center}
+.row input{width:110px}
+.btn{border:0;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:700;padding:12px 16px;border-radius:10px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--mute);border:1px solid var(--line)}
+.chips{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}
+.chips button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:99px;padding:5px 12px;font:inherit;font-size:14px;cursor:pointer}
+h3{font-size:16px;margin:20px 0 8px}
+.log li{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.log button{border:0;background:none;color:var(--mute);cursor:pointer;font-size:18px}
+.lockt{font-size:12px;color:var(--mute);border:1px solid var(--line);border-radius:99px;padding:2px 8px}.plan{display:flex;justify-content:space-between;width:100%;margin:8px 0}.pro{background:var(--surface);border:1px dashed var(--accent);border-radius:12px;padding:12px;margin:0 0 14px;font-size:14px}.pro .row{margin-top:8px}.pro .row input{width:auto;flex:1}.msg{color:var(--mute);font-size:13px;margin:6px 0}.chart{display:flex;align-items:flex-end;gap:3px;height:96px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px}.b{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:2px}.b i{display:block;width:100%;min-height:2px;background:var(--track);border-radius:3px}.b i.hit{background:var(--accent)}.b small{font-size:9px;color:var(--mute)}.note{color:var(--mute);font-size:13px;margin-top:22px}
+.empty{color:var(--mute);padding:14px 0}
+</style>
+</head>
+<body>
+<main>
+  <h1>Protein Finder</h1>
+  <section class="today">
+    <div class="big"><span id="total">0</span> g <small>of <span id="goalTxt">100</span> g today</small></div>
+    <div class="bar"><i id="fill"></i></div>
+    <label class="goal">Daily goal <input id="goal" type="number" min="1" max="500" inputmode="numeric"> g</label>
+  </section>
+  <input id="q" type="search" placeholder="Search a food, like chicken or lentils" aria-label="Search foods" autocomplete="off">
+  <div class="pro"><b id="proT"></b><div class="row"><input id="code" inputmode="numeric" placeholder="Barcode number" aria-label="Barcode number"><button class="btn" id="scan">Scan</button><button class="btn ghost" id="look">Look up</button></div><div class="row"><input id="cn" placeholder="Custom food name" aria-label="Custom food name"><input id="cp" type="number" inputmode="decimal" placeholder="g protein / 100 g" aria-label="Protein per 100 g"><button class="btn ghost" id="cadd">Add food</button></div><div class="msg" id="msg"></div></div>
+  <div id="pay" class="sheet" hidden></div>
+  <div id="sheet" class="sheet" hidden></div>
+  <div class="chips" id="ffs"><button data-ff="all">All foods</button><button data-ff="fav">Favorites</button></div>
+  <div class="foods" id="foods"></div>
+  <h3>History</h3><div class="chart" id="chart"></div><div class="msg" id="chartNote"></div>
+  <h3>Today's log</h3>
+  <ul class="log" id="log"></ul>
+  <p class="note">Values are typical grams of protein per 100 g, rounded from public nutrition data. Cooked foods are listed as cooked. Real products vary, so check the label.</p>
+</main>
+<script>
+(function(){
+  var F=[["Chicken breast, cooked",31],["Turkey breast, cooked",29],["Beef steak, cooked",27],["Ground beef, cooked",26],["Pork loin, cooked",27],["Salmon, cooked",22],["Tuna, canned",26],["Cod, cooked",23],["Shrimp, cooked",24],["Egg, whole",13],["Greek yogurt",10],["Cottage cheese",11],["Cheddar cheese",25],["Parmesan",36],["Milk",3.4],["Whey protein powder",80],["Tofu, firm",8],["Tempeh",19],["Edamame",11],["Lentils, cooked",9],["Chickpeas, cooked",9],["Black beans, cooked",9],["Peas, green",5],["Peanuts",26],["Peanut butter",25],["Almonds",21],["Pumpkin seeds",30],["Chia seeds",17],["Oats, dry",13],["Whole wheat bread",13],["Pasta, cooked",5],["Quinoa, cooked",4.4],["Rice, cooked",2.7],["Broccoli",2.8],["Spinach",2.9],["Potato, baked",2],["Avocado",2],["Banana",1.1],["Apple",0.3],["Chicken thigh, cooked",26],["Chicken, rotisserie",27],["Duck, cooked",27],["Lamb, cooked",25],["Bacon, cooked",37],["Ham",21],["Turkey, ground cooked",27],["Venison, cooked",30],["Sardines, canned",25],["Mackerel, cooked",24],["Trout, cooked",23],["Tilapia, cooked",26],["Halibut, cooked",23],["Crab, cooked",19],["Lobster, cooked",19],["Scallops, cooked",20],["Mussels, cooked",24],["Egg white",11],["Skyr",11],["Kefir",3.8],["Mozzarella",22],["Swiss cheese",27],["Feta",14],["Ricotta",11],["Cream cheese",6],["Soy milk",3.3],["Seitan",25],["Soybeans, cooked",17],["Kidney beans, cooked",9],["Pinto beans, cooked",9],["White beans, cooked",7],["Hummus",8],["Split peas, cooked",8],["Walnuts",15],["Cashews",18],["Pistachios",20],["Sunflower seeds",21],["Hemp seeds",32],["Flax seeds",18],["Sesame seeds",18],["Pea protein powder",78],["Protein bar",33],["Beef jerky",33],["Spirulina, dried",57],["Nutritional yeast",50],["Bulgur, cooked",3.1],["Barley, cooked",2.3],["Buckwheat, cooked",3.4],["Corn, cooked",3.4],["Asparagus",2.2],["Brussels sprouts",3.4],["Kale",4.3],["Mushrooms",3.1],["Cauliflower",1.9],["Sweet potato",1.6],["Orange",0.9],["Guava",2.6],["Pizza, cheese",11],["Burger patty, cooked",25],["Falafel",13],["Sushi, salmon roll",6]];
+  var FREE=39,PLANS={m:{label:"Monthly",price:"$10 / month"},y:{label:"Yearly",price:"$150 / year"}};
+  var KEY="protein-mvp-v1",S={goal:100,log:[],day:new Date().toDateString(),fav:[],hist:{},custom:[]};
+  try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(p&&p.log)S=p;}}catch(e){}
+  S.fav=S.fav||[];S.hist=S.hist||{};S.custom=S.custom||[];
+  if(S.day!==new Date().toDateString()){S.hist[S.day]=S.log.reduce(function(a,x){return a+x.p;},0);S.day=new Date().toDateString();S.log=[];}
+  function A(){return F.concat(S.custom);}
+  var ff="all";
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+  var $=function(i){return document.getElementById(i);};
+  function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML;}
+  function fmt(n){return (Math.round(n*10)/10).toString();}
+  var sel=null;
+  function say(t){$("msg").textContent=t;}
+  function pro(){return !!S.premium;}
+  function showPay(why){
+    var p=$("pay");p.hidden=false;
+    p.innerHTML='<h2>Protein Finder Premium</h2><div class="msg">'+esc(why||"Unlock everything.")+'</div><div class="msg">Barcode lookup, your own custom foods, and 30-day history. Basic already includes all foods, favorites, the daily log and 7-day history.</div>'+
+    '<button class="btn plan" data-plan="m"><span>'+PLANS.m.label+'</span><span>'+PLANS.m.price+'</span></button>'+
+    '<button class="btn plan" data-plan="y"><span>'+PLANS.y.label+'</span><span>'+PLANS.y.price+'</span></button>'+
+    '<div class="msg" id="payMsg">Billed through the App Store or Google Play. Cancel anytime in your store account.</div>'+
+    '<div class="row"><button class="btn ghost" id="payX">Not now</button><button class="btn ghost" id="demo">Preview premium (demo)</button></div>';
+  }
+  function buy(plan){
+    var B=window.PremiumBilling;
+    if(B&&B.purchase){B.purchase(plan).then(function(ok){if(ok){S.premium=true;save();$("pay").hidden=true;renderAll();}}).catch(function(){$("payMsg").textContent="Purchase did not complete. You were not charged.";});}
+    else $("payMsg").textContent="Purchases work in the App Store and Google Play versions of the app.";
+  }
+  function lookup(){
+    if(!pro()){showPay("Barcode lookup is a premium feature.");return;}
+    var c=$("code").value.replace(/\D/g,"");if(c.length<6){say("Enter the digits under the barcode.");return;}
+    say("Looking up...");
+    fetch("https://world.openfoodfacts.org/api/v2/product/"+c+".json?fields=product_name,nutriments").then(function(r){return r.json();}).then(function(d){
+      var pr=d&&d.product,v=pr&&pr.nutriments&&pr.nutriments.proteins_100g;
+      if(!pr||v==null){say("No protein data for this barcode.");return;}
+      sel={f:[pr.product_name||"Scanned product",v],g:100};say("");renderSheet();
+    }).catch(function(){say("Lookup needs an internet connection in the store app.");});
+  }
+
+  function renderFoods(){
+    var q=$("q").value.trim().toLowerCase();
+    var l=A().map(function(f,i){return {n:f[0],p:f[1],i:i};}).filter(function(f){return f.n.toLowerCase().indexOf(q)>-1&&(ff==="all"||S.fav.indexOf(f.n)>-1);});
+    if(!q)l.sort(function(a,b){return b.p-a.p;});
+    $("foods").innerHTML=l.length?l.map(function(f){
+      return '<button class="food" data-i="'+f.i+'"><span><b>'+(S.fav.indexOf(f.n)>-1?'★ ':'')+esc(f.n)+'</b><small>per 100 g</small></span>'+'<span class="p">'+fmt(f.p)+' g</span>'+'</button>';
+    }).join(""):'<p class="empty">No match. Try a simpler word, like "rice".</p>';
+  }
+  function renderSheet(){
+    var s=$("sheet");
+    if(!sel){s.hidden=true;return;}
+    s.hidden=false;
+    s.innerHTML='<h2>'+esc(sel.f[0])+'</h2><div class="chips" id="chips"><button data-g="50">50 g</button><button data-g="100">100 g</button><button data-g="150">150 g</button><button data-g="200">200 g</button></div>'+
+    '<div class="row"><input id="grams" type="number" min="1" inputmode="numeric" value="'+sel.g+'" aria-label="Amount in grams"><span>grams</span></div>'+
+    '<div class="res" id="res"></div><div class="row"><button class="btn" id="add">Add to today</button><button class="btn ghost" id="fav">'+(S.fav.indexOf(sel.f[0])>-1?'★ Saved':'☆ Favorite')+'</button><button class="btn ghost" id="close">Close</button></div>';
+    calc();
+  }
+  function calc(){var g=parseFloat($("grams").value)||0;sel.g=g;$("res").textContent=fmt(g*sel.f[1]/100)+" g protein";}
+  function renderChart(){
+    var n=pro()?30:7,days=[],mx=S.goal;
+    for(var i=n-1;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var k=d.toDateString();var v=S.hist[k]||0;days.push({v:v,l:d.getDate()});if(v>mx)mx=v;}
+    $("chart").innerHTML=days.map(function(x){return '<div class="b"><i class="'+(x.v>=S.goal?'hit':'')+'" style="height:'+Math.round(x.v/mx*100)+'%"></i><small>'+x.l+'</small></div>';}).join("");
+    $("chartNote").textContent=pro()?"Last 30 days. Green bars hit your goal.":"Last 7 days. 30-day history is Premium.";
+  }
+  function renderToday(){
+    var t=S.log.reduce(function(a,x){return a+x.p;},0);
+    $("total").textContent=fmt(t);$("goalTxt").textContent=S.goal;$("goal").value=S.goal;
+    $("fill").style.width=Math.min(100,t/S.goal*100)+"%";S.hist[S.day]=t;save();renderChart();
+    $("log").innerHTML=S.log.length?S.log.map(function(x,i){
+      return '<li><span>'+esc(x.n)+', '+x.g+' g</span><span><b>'+fmt(x.p)+' g</b> <button data-d="'+i+'" aria-label="Remove">×</button></span></li>';
+    }).join(""):'<li class="empty">Nothing logged yet. Pick a food above.</li>';
+  }
+
+  $("q").oninput=renderFoods;
+  $("foods").onclick=function(e){var b=e.target.closest(".food");if(!b)return;sel={f:A()[+b.getAttribute("data-i")],g:100};renderSheet();$("sheet").scrollIntoView({block:"nearest"});};
+  $("sheet").onclick=function(e){
+    var t=e.target;
+    if(t.getAttribute("data-g")){$("grams").value=t.getAttribute("data-g");calc();}
+    else if(t.id==="fav"){var k=S.fav.indexOf(sel.f[0]);if(k>-1)S.fav.splice(k,1);else S.fav.push(sel.f[0]);save();renderSheet();renderFoods();}
+    else if(t.id==="close"){sel=null;renderSheet();}
+    else if(t.id==="add"&&sel.g>0){S.log.push({n:sel.f[0],g:sel.g,p:sel.g*sel.f[1]/100});save();sel=null;renderSheet();renderToday();}
+  };
+  $("sheet").oninput=function(e){if(e.target.id==="grams")calc();};
+  $("log").onclick=function(e){var d=e.target.getAttribute("data-d");if(d===null)return;S.log.splice(+d,1);save();renderToday();};
+  $("goal").onchange=function(){var v=parseFloat($("goal").value);if(v>0){S.goal=v;save();}renderToday();};
+  function renderAll(){renderFoods();renderToday();$("proT").textContent=pro()?"Premium active":"Premium tools: barcode lookup and custom foods";}
+  $("pay").onclick=function(e){var t=e.target.closest("button");if(!t)return;if(t.getAttribute("data-plan"))buy(t.getAttribute("data-plan"));else if(t.id==="payX")$("pay").hidden=true;else if(t.id==="demo"){S.premium=true;save();$("pay").hidden=true;renderAll();}};
+  $("look").onclick=lookup;
+  $("ffs").onclick=function(e){var v=e.target.getAttribute("data-ff");if(v){ff=v;renderFoods();}};
+  $("cadd").onclick=function(){if(!pro()){showPay("Custom foods are a premium feature.");return;}var n=$("cn").value.trim(),v=parseFloat($("cp").value);if(!n||!(v>=0)){say("Enter a name and protein per 100 g.");return;}S.custom.push([n,v]);save();$("cn").value="";$("cp").value="";say("Added "+n+".");renderFoods();};
+  $("scan").onclick=function(){if(!pro()){showPay("Barcode scanning is a premium feature.");return;}if(window.NativeScan){window.NativeScan().then(function(c){$("code").value=c;lookup();});}else say("Camera scanning works in the store app. Type the digits here for now.");};
+  renderAll();
+})();
+</script>
+</body>
+</html>
